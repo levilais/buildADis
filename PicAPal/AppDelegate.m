@@ -7,19 +7,140 @@
 //
 
 #import "AppDelegate.h"
+#import <RevMobAds/RevMobAds.h>
+
+#import "UIDevice+Resolutions.h"
 
 @implementation AppDelegate
 
 @synthesize window = _window;
+@synthesize navcon;
+@synthesize fatpack,expansionPack,noAds,unlockAll;
+@synthesize m_arrayInsults;
+@synthesize saveTarget,saveSubject;
+@synthesize intScrollOffset;
+@synthesize changeSize,checkRun;
+@synthesize checkForHoneScreen,checkForPopulaterScreen;
+@synthesize arrayPopInfo;
+@synthesize showPopUpOneTime,ShowpopUpAfterShareFB,ShowpopUpAfterShareTW,ShowpopUpAfterShareEM;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    
+        /////======   To show add  =======/////
+
+    
+    //self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
+    [self performSelector:@selector(createEditableCopyOfDatabaseIfNeeded)];
+    [RevMobAds startSessionWithAppID:@"520bc14c097bd4838d000005"];
+    [self.window addSubview:navcon.view];
     [self.window makeKeyAndVisible];
+    
+    arrayPopInfo=[[NSMutableArray alloc]init];
+    
+    /////====== to hide app =======//////
+    
+    NSString *strHideAdd=[[NSUserDefaults standardUserDefaults]objectForKey:@"key_HiddenAdPack"];
+   
+    checkRun=NO;
+    checkForHoneScreen=NO;
+    checkForPopulaterScreen=NO;
+    showPopUpOneTime=NO;
+    ShowpopUpAfterShareFB=NO;
+    ShowpopUpAfterShareTW=NO;
+    ShowpopUpAfterShareEM=NO;
+    ////======   To show add  =======/////
+    
+
+    
+       // Note: Edit SampleConstants.h to provide a definition for kSampleAdUnitID
+    // before compiling
+	m_arrayInsults=[[NSMutableArray alloc]init];
+    saveTarget=[[NSString alloc]init];
+    saveSubject=[[NSString alloc]init];
+    intScrollOffset=0;
+
     return YES;
 }
+
+
+
+- (void)createEditableCopyOfDatabaseIfNeeded {
+    
+    //nslog(@"Create a  Editable copy of data base");
+    
+    // First, test for existence.
+    
+    BOOL success;
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    NSError *error;
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    
+    NSString *writableDBPath = [documentsDirectory stringByAppendingPathComponent:@"BuildADisNew2.sqlite"];
+    
+    success = [fileManager fileExistsAtPath:writableDBPath];
+    
+    if (success)
+        
+    {
+        //nslog(@"Success........");
+        return;
+    }
+    //The writable database does not exist, so copy the default to the appropriate location.
+    
+    NSString *defaultDBPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"BuildADisNew2.sqlite"];
+    
+    success = [fileManager copyItemAtPath:defaultDBPath toPath:writableDBPath error:&error];
+    
+    if (!success) {
+        
+        //nslog(@"Failed........");
+        
+    }
+}
+
+
+//Make connection
+
++ (sqlite3 *) getNewDBConnection{
+    
+    
+    sqlite3 *newDBconnection;
+    
+    
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    
+    
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    
+    
+    NSString *path = [documentsDirectory stringByAppendingPathComponent:@"BuildADisNew2.sqlite"];
+    
+    //nslog(@"%@ ",path);
+    
+    // Open the database. The database was prepared outside the application.
+    
+    
+    if (sqlite3_open([path UTF8String], &newDBconnection) == SQLITE_OK) {
+        
+        //nslog(@"Database Successfully Opened :");
+        
+    } else {
+        
+        //nslog(@"Error in opening database :( “");
+    }
+    
+    return newDBconnection;
+    
+}
+
 
 - (void)applicationWillResignActive:(UIApplication *)application
 {
@@ -59,5 +180,19 @@
      See also applicationDidEnterBackground:.
      */
 }
+
+#pragma mark - Show ADs
+
+-(void)showAd
+{
+    NSString *strHideAdd=[[NSUserDefaults standardUserDefaults]objectForKey:@"key_HiddenAdPack"];
+    
+    if ([strHideAdd isEqualToString:@"HiddenAdPack"]) {
+        
+        return;
+    }
+    [[RevMobAds session] showFullscreen];
+}
+
 
 @end
